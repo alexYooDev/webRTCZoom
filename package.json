@@ -1,0 +1,28 @@
+{
+  "name": "webrtc",
+  "version": "1.0.0",
+  "description": "Zoom project with webRTC and Websockets",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexYooDev/webRTCZoom.git"
+  },
+  "license": "ISC",
+  "scripts": {
+    "dev": "nodemon"
+  },
+  "bugs": {
+    "url": "https://github.com/alexYooDev/webRTCZoom/issues"
+  },
+  "homepage": "https://github.com/alexYooDev/webRTCZoom#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.19.3",
+    "@babel/core": "^7.19.3",
+    "@babel/node": "^7.19.1",
+    "@babel/preset-env": "^7.19.3",
+    "nodemon": "^2.0.20"
+  },
+  "dependencies": {
+    "express": "^4.18.1",
+    "pug": "^3.0.2"
+  }
+}
