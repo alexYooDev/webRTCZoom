@@ -1,5 +1,4 @@
 import express from 'express';
-import path from 'path';
 
 const app = express();
 
@@ -13,6 +12,10 @@ app.use('/public', express.static(`${__dirname}/public`));
 app.get('/', (req, res) => {
   res.render('home');
 });
+app.get('/*', (req, res) => {
+  res.redirect('/');
+});
+
 const handleListen = () => console.log(`Listening on http://localhost:${PORT}`);
 
 app.listen(PORT, handleListen);
