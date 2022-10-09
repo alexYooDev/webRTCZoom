@@ -26,10 +26,8 @@ const server = http.createServer(app);
 //ws server with the same port
 const wss = new WebSocket.Server({ server });
 
-const handleConnection = (socket) => {
-  console.log(socket);
-};
-
-wss.on('connection', handleConnection);
+wss.on('connection', (socket) => {
+  socket.send('hello this is my first message!');
+});
 
 server.listen(PORT, handleListen);
