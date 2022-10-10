@@ -25,15 +25,17 @@ const server = http.createServer(app);
 //ws server with the same port
 const wss = new WebSocket.Server({ server });
 
+const onSockectMessage = (message, isBinary) => {
+  message = isBinary ? message : message.toString();
+  console.log(message);
+};
+
 wss.on('connection', (socket) => {
   console.log('Connected to the browser!');
 
   socket.on('close', () => console.log('Disconnected from the browser!'));
-  socket.on('message', (message) => {
-    console.log(message);
-  });
-
-  socket.send('hello this is my first message!');
+  socket.on('message', onSockectMessage);
+  socket.send('hello this is my first message from the server!');
 });
 
 server.listen(PORT, handleListen);
