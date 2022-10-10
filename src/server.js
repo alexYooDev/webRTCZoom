@@ -13,7 +13,6 @@ app.use('/public', express.static(`${__dirname}/public`));
 
 app.get('/', (req, res) => {
   res.render('home');
-  ad;
 });
 
 app.get('/*', (req, res) => {
@@ -27,6 +26,13 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (socket) => {
+  console.log('Connected to the browser!');
+
+  socket.on('close', () => console.log('Disconnected from the browser!'));
+  socket.on('message', (message) => {
+    console.log(message);
+  });
+
   socket.send('hello this is my first message!');
 });
 
