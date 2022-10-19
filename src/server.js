@@ -27,17 +27,18 @@ const wss = new WebSocket.Server({ server });
 
 const sockets = [];
 
+const onSocketClose = () => {
+  console.log('Disconnected from the broswer!');
+};
+
 wss.on('connection', (socket) => {
   sockets.push(socket);
 
   console.log('Connected to the browser!');
-  socket.on('close', () => {
-    console.log('Disconnected from the browser!');
-  });
+  socket.on('close', onSocketClose);
   socket.on('message', (message) => {
-    socket.send(message.toString());
+    sockets.forEach((_socket) => _socket.send(message.toString()));
   });
-  socket.send('hello this is my first message from the server!');
 });
 
 server.listen(PORT, handleListen);
