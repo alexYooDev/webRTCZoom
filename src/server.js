@@ -1,6 +1,7 @@
 import express from 'express';
 import http from 'http';
-import WebSocket from 'ws';
+// import WebSocket from 'ws';
+import SocketIO from 'socket.io';
 
 const app = express();
 
@@ -21,11 +22,14 @@ app.get('/*', (req, res) => {
 
 const handleListen = () => console.log(`Listening on http://localhost:${PORT}`);
 
-const server = http.createServer(app);
-//ws server with the same port
-const wss = new WebSocket.Server({ server });
+const httpServer = http.createServer(app);
+const wsIOServer = SocketIO(server);
 
-const sockets = [];
+//ws server with the same port
+
+// const wss = new WebSocket.Server({ server });
+
+/* const sockets = [];
 
 const onSocketClose = () => {
   console.log('Disconnected from the broswer!');
@@ -33,12 +37,22 @@ const onSocketClose = () => {
 
 wss.on('connection', (socket) => {
   sockets.push(socket);
-
+  socket.nickname = 'Anonymous';
   console.log('Connected to the browser!');
   socket.on('close', onSocketClose);
-  socket.on('message', (message) => {
-    sockets.forEach((_socket) => _socket.send(message.toString()));
+
+  socket.on('message', (msg) => {
+    const data = JSON.parse(msg);
+
+    switch (data.type) {
+      case 'message':
+        sockets.forEach((_socket) =>
+          _socket.send(`${socket.nickname}: ${data.payload}`)
+        );
+      case 'nickname':
+        socket['nickname'] = data.payload;
+    }
   });
-});
+}); */
 
 server.listen(PORT, handleListen);
