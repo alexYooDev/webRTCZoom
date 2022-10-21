@@ -23,7 +23,18 @@ app.get('/*', (req, res) => {
 const handleListen = () => console.log(`Listening on http://localhost:${PORT}`);
 
 const httpServer = http.createServer(app);
-const wsIOServer = SocketIO(server);
+const wsIOServer = SocketIO(httpServer);
+
+wsIOServer.on('connection', (socket) => {
+  socket.on('enter_room', (roomName, done) => {
+    console.log(roomName);
+    setTimeout(() => {
+      /* done : ONLY TRIGGERS function in the fe, not executing it in the server side
+       */
+      done('Hello from the server');
+    }, 15000);
+  });
+});
 
 //ws server with the same port
 
@@ -55,4 +66,4 @@ wss.on('connection', (socket) => {
   });
 }); */
 
-server.listen(PORT, handleListen);
+httpServer.listen(PORT, handleListen);
