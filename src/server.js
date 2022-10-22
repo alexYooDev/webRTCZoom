@@ -26,13 +26,15 @@ const httpServer = http.createServer(app);
 const wsIOServer = SocketIO(httpServer);
 
 wsIOServer.on('connection', (socket) => {
+  socket.onAny((event, ...args) => {
+    console.log(`got socket event: ${event}`);
+  });
   socket.on('enter_room', (roomName, done) => {
-    console.log(roomName);
-    setTimeout(() => {
-      /* done : ONLY TRIGGERS function in the fe, not executing it in the server side
-       */
-      done('Hello from the server');
-    }, 15000);
+    socket.join(roomName);
+    /* done : ONLY TRIGGERS function in the fe, not executing it in the server side
+     */
+    done();
+    socket.to(roomName).emit('welcome', { participant: 'Anonymous' });
   });
 });
 
