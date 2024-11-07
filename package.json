@@ -2,6 +2,7 @@
   "name": "webrtc",
   "version": "1.0.0",
   "description": "Zoom project with webRTC and Websockets",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/alexYooDev/webRTCZoom.git"
