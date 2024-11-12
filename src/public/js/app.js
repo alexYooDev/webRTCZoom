@@ -1,81 +1,68 @@
 /* build connection */
 const socket = io();
 
-const welcome = document.getElementById('welcome');
-const $form = welcome.querySelector('form');
-const room = document.getElementById('room');
+const myFace = document.getElementById('myFace');
+const muteBtn = document.getElementById('mute')
+const cameraBtn = document.getElementById('camera');
+const cameraSelect = document.getElementById('cameras');
 
-room.hidden = true;
+let myStream;
+let muted = false;
+let cameraOff = false;
 
-let roomName;
+const getCameras = async () => {
+  try {
+    const devices = (await navigator.mediaDevices.enumerateDevices());
+    const cameras = devices.filter((device) => device.kind === 'videoinput');
+    
+    cameras.forEach(camera => {
+      const $option = document.createElement('option');
+      $option.innerText = camera.label.split('(')[0];
+      $option.value = camera.deviceId;
+      cameraSelect.appendChild($option);
+    });
 
-const addMessage = (msg) => {
-  const $ul = room.querySelector('ul');
-  const $li = document.createElement('li');
-  $li.textContent = msg;
-  $ul.appendChild($li);
-};
-
-const handleMessageSubmit = (event) => {
-  event.preventDefault();
-  const $input = room.querySelector('#message input');
-  const value = $input.value;
-  socket.emit('message', $input.value, roomName, () =>
-    addMessage(`You: ${value}`)
-  );
-  $input.value = '';
-};
-
-/* Function triggered by BE done callback */
-const showRoom = () => {
-  welcome.hidden = true;
-  room.hidden = false;
-  const roomTitle = room.querySelector('h3');
-  roomTitle.innerText = `Room: ${roomName}`;
-  const messageForm = room.querySelector('#message');
-  messageForm.addEventListener('submit', handleMessageSubmit);
-};
-
-const handleRoomSubmit = (event) => {
-  event.preventDefault();
-  const $roomInput = $form.querySelector('#room-name');
-  const $nickNameInput = $form.querySelector('#nick-name');
-  socket.emit('enter_room', $roomInput.value, $nickNameInput.value, showRoom);
-  roomName = $roomInput.value;
-  nickName = $nickNameInput.value;
-  $roomInput.value = '';
-  $nickNameInput.value = '';
-};
-
-
-$form.addEventListener('submit', handleRoomSubmit);
-
-/* 해당 이벤트가 일어난 브라우저를 *제외하고* 모든 연결된 브라우저에 적용  */
-socket.on('welcome', (payload) => {
-
-  const roomTitle = room.querySelector('h3');
-  const {participant, roomCount} = payload;
-  roomTitle.innerText = `Room: ${roomName} (${roomCount})`;
-  addMessage(
-    `${
-      participant
-      } joined the chat! - ${new Date().toLocaleTimeString()}`
-    )
+  } catch (error) {
+    console.log(error);
   }
-);
+}
 
-socket.on('exit', (payload) => {
-   const roomTitle = room.querySelector('h3');
+const getMedia = async () => {
+  try {
+    myStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: true
+    });
+    myFace.srcObject = myStream;
+    await getCameras();
+  } catch(error) {
+    console.log(error);
+  }
+};
 
-   const {participant, roomCount} = payload;
+getMedia();
 
-   roomTitle.innerText = `Room: ${roomName} (${roomCount})`;
-  addMessage(
-    `${participant} left the chat. - ${new Date().toLocaleTimeString()}`
-  );
-});
+const handleMuteClick = () => {
+  myStream.getAudioTracks().forEach(track => track.enabled = !track.enabled);
+  if (!muted) {
+    muteBtn.innerText = 'UnMute';
+    muted = true;
+  } else {
+    muteBtn.innerText = 'Mute';
+    muted = false;
+  }
+}
 
+const handleCameraClick = () => {
+  myStream.getVideoTracks().forEach(track => track.enabled = !track.enabled)
+  if (!cameraOff) {
+    cameraBtn.innerText = 'Camera On'
+    cameraOff = true;
+  } else {
+    cameraBtn.innerText = 'Camera Off'
+    cameraOff = false;
+  }
+}
 
-socket.on('message', (payload) => {
-  addMessage(`${payload.nickname}: ${payload.message}`)
-});
+muteBtn.addEventListener('click', handleMuteClick);
+cameraBtn.addEventListener('click', handleCameraClick);
