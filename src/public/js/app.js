@@ -51,19 +51,30 @@ const handleRoomSubmit = (event) => {
 $form.addEventListener('submit', handleRoomSubmit);
 
 /* 해당 이벤트가 일어난 브라우저를 *제외하고* 모든 연결된 브라우저에 적용  */
-socket.on('welcome', (payload) =>
+socket.on('welcome', (payload) => {
+
+  const roomTitle = room.querySelector('h3');
+  const {participant, roomCount} = payload;
+  roomTitle.innerText = `Room: ${roomName} (${roomCount})`;
   addMessage(
     `${
-      payload.participant
-    } joined the chat! - ${new Date().toLocaleTimeString()}`
-  )
+      participant
+      } joined the chat! - ${new Date().toLocaleTimeString()}`
+    )
+  }
 );
 
 socket.on('exit', (payload) => {
+   const roomTitle = room.querySelector('h3');
+
+   const {participant, roomCount} = payload;
+
+   roomTitle.innerText = `Room: ${roomName} (${roomCount})`;
   addMessage(
-    `${payload.participant} left the chat. - ${new Date().toLocaleTimeString()}`
+    `${participant} left the chat. - ${new Date().toLocaleTimeString()}`
   );
 });
+
 
 socket.on('message', (payload) => {
   addMessage(`${payload.nickname}: ${payload.message}`)

@@ -1,6 +1,8 @@
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
+import { instrument } from '@socket.io/admin-ui';
+
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -26,9 +28,37 @@ app.get('/*', (req, res) => {
 const handleListen = () => console.log(`Listening on http://localhost:${PORT}`);
 
 const httpServer = http.createServer(app);
-const wsIOServer = new Server(httpServer);
+const wsServer = new Server(httpServer, {
+    cors: {
+      origin: ['https://admin.socket.io'],
+      credentials: true
+    }
+  }
+);
 
-wsIOServer.on('connection', (socket) => {
+instrument(wsServer, {
+  auth: false
+})
+
+const getPublicRooms = () => {
+  const { sids, rooms } = wsServer.sockets.adapter;
+
+  const publicRooms = [];
+
+  rooms.forEach((_, key) => {
+    if (sids.get(key) === undefined) {
+      publicRooms.push(key);
+    }
+  });
+
+  return publicRooms;
+};
+
+const countRoom = (roomName) => {
+  return wsServer.sockets.adapter.rooms.get(roomName)?.size;
+};
+
+wsServer.on('connection', (socket) => {
   socket['nickname'] = 'Anonymous'
   socket.onAny((event, ...args) => {
     console.log(`got socket event: ${event}`);
@@ -40,7 +70,8 @@ wsIOServer.on('connection', (socket) => {
     /* done : ONLY TRIGGERS function in the fe, not executing it in the server side
      */
     done();
-    socket.to(roomName).emit('welcome', { participant: nickName });
+    socket.to(roomName).emit('welcome', { participant: nickName, roomCount: countRoom(roomName) });
+    wsServer.sockets.emit("room_change", getPublicRooms());
   });
 
   socket.on('message', (msg, roomName, done) => {
@@ -49,10 +80,21 @@ wsIOServer.on('connection', (socket) => {
   });
 
   socket.on('nickname', nickname => (socket['nickname'] = nickname))
+  
   socket.on('disconnecting', () => {
+    const nickname = socket['nickname'];
     socket.rooms.forEach((room) =>
-      socket.to(room).emit('exit', { participant: 'Anonymous' })
-    );
+      socket
+    .to(room)
+    .emit('exit', {
+      participant: nickname,
+      roomCount: countRoom(room) - 1 
+    })
+  );
+});
+
+socket.on('disconnect', () => {
+  wsServer.sockets.emit('room_change', getPublicRooms());
   });
 });
 
